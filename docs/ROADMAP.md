@@ -47,7 +47,7 @@ Notes
 
 - No breaking API changes. All items validated by unit tests or a small manual smoke run.
 
-## �🛠️ 2025 Q3 Upgrade Execution Plan (Next 2 Weeks)
+## 🛠️ 2025 Q3 Upgrade Execution Plan (Next 2 Weeks)
 
 This section turns the roadmap into an actionable, time-bound plan. Dates assume start week of Aug 11, 2025. Adjust as needed.
 
