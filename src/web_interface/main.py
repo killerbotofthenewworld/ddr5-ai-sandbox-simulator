@@ -78,7 +78,7 @@ def create_perfect_web_interface():
         "🧠 AI Optimization",
         "🎮 Gaming Performance",
         "📊 Analysis",
-        "� Enhanced Features",
+        "🚀 Enhanced Features",
         "📈 Benchmarks",
         "💻 Hardware Detection",
         "⚡ Live Tuning",

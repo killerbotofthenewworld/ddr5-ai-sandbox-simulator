@@ -330,7 +330,7 @@ def render_live_tuning_tab(config: DDR5Configuration):
         
         safety_checks = []
         safety_checks.append(st.checkbox("🚨 I understand live tuning can DAMAGE my hardware"))
-        safety_checks.append(st.checkbox("� I have SAVED all my important work"))
+        safety_checks.append(st.checkbox("💾 I have SAVED all my important work"))
         safety_checks.append(st.checkbox("🔧 I know how to RESET CMOS if system fails to boot"))
         safety_checks.append(st.checkbox("⚖️ I accept FULL RESPONSIBILITY for any damage"))
         
