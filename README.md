@@ -5,7 +5,7 @@
 [![Version](https://img.shields.io/badge/version-6.0.2-blue.svg)](https://github.com/killerbotofthenewworld/ddr5-ai-memory-tuner/releases)
 [![CI](https://github.com/killerbotofthenewworld/ddr5-ai-memory-tuner/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/killerbotofthenewworld/ddr5-ai-memory-tuner/actions/workflows/ci-cd.yml)
 
-> DDR5 AI memory tuner for safe timing optimization and performance simulation; Streamlit UI, Windows installer, JEDEC compliance.
+> AI-powered DDR5 memory timing optimizer and performance simulator. Streamlit web UI, Windows installer, JEDEC compliance validation, and genetic-algorithm-driven tuning — no physical hardware required.
 
 ---
 
@@ -18,7 +18,7 @@ Looking for docs? See the consolidated docs hub in `docs/` (index at `docs/READM
 ![Main Dashboard](screenshots/Screenshot_20250623_155226.png)
 *Professional DDR5 optimization interface with simulation and AI optimization features*
 
-### 🚀 Enhanced Features Hub - Advanced Tools  
+### 🚀 Enhanced Features Hub - Advanced Tools
 
 ![Enhanced Features](screenshots/Screenshot_20250623_155423.png)
 *Comprehensive feature hub with dark/light theme, 3D charts, real-time monitoring, and AI assistant*
@@ -49,7 +49,7 @@ Option B — Scripted install (from source):
 
 Launch options on Windows:
 
-- From Desktop/Start Menu shortcut “DDR5 AI Memory Tuner”, or
+- From Desktop/Start Menu shortcut "DDR5 AI Memory Tuner", or
 - Run `%LOCALAPPDATA%\DDR5-AI-Memory-Tuner\run_ddr5_simulator.bat`
 
 ### From source (all platforms)
@@ -61,14 +61,20 @@ python -m pip install -r requirements.txt
 python -m streamlit run src/web_interface/main.py --server.port 8521
 ```
 
+### Quick AI demo (no web UI)
+
+```bash
+python demo_advanced_ai.py
+```
+
 ---
 
-## ✨ Enhanced Features v6.0.0
+## ✨ Features
 
 ### 🎨 **Professional UI/UX**
 
 - **Dark/Light Theme** with smooth animations
-- **Custom CSS** styling and metric cards  
+- **Custom CSS** styling and metric cards
 - **Progress indicators** and loading spinners
 - **Responsive design** for all screen sizes
 
@@ -81,30 +87,41 @@ python -m streamlit run src/web_interface/main.py --server.port 8521
 
 ### 🤖 **AI-Powered Optimization**
 
-- **Multiple AI Engines** - Genetic Algorithm, Neural Networks, RL
+- **Genetic Algorithm** - Population-based search with JEDEC constraint repair
+- **Reinforcement Learning** - Q-learning agent for incremental tuning
+- **Ensemble Methods** - Combines GA + RL results for best-of-both
 - **AutoML Pipeline** - Automated model training with Optuna
-- **LLM Integration** - OpenAI, Anthropic, Ollama, Local models
-- **Plain English** explanations and recommendations
+- **LLM Integration** - OpenAI, Anthropic, Ollama, Local models (optional)
 
-### ⚡ **Real-Time Hardware Control**
+### 🔬 **DDR5 Simulation Engine**
 
-- **Live Tuning** with safety locks and confirmations
+- **Bandwidth Simulation** - Sequential, random, and mixed access patterns
+- **Latency Modelling** - Bank conflicts, command overhead, timing efficiency
+- **Power Estimation** - Dynamic + static power with thermal derating
+- **Stability Testing** - Configurable stress levels with scoring and recommendations
+- **JEDEC Compliance** - Validates frequencies (DDR5-4000 to DDR5-8400), timings, and voltages
+
+### ⚡ **Hardware Integration** (Linux fully supported, Windows read-only)
+
+- **Hardware Detection** - Automatic system profiling via dmidecode / WMI / system_profiler
+- **Live Tuning** - Safety locks, backup/restore, emergency stops (Linux)
 - **WebSocket Monitoring** - Real-time metrics streaming
-- **Hardware Detection** - Automatic system profiling
 - **Emergency Recovery** - Instant parameter restoration
+
+> **Note:** Direct hardware write operations (apply settings, restore backup) are implemented on Linux with appropriate privileges. Windows support is detection-only; settings must be applied manually through BIOS.
 
 ### 🛡️ **Safety & Validation**
 
 - **Multi-level Confirmations** for hardware changes
-- **Predictive Health Monitoring** - Component lifespan estimation
-- **JEDEC Compliance** checking and validation
-- **Damage Prevention** - Voltage/timing safety limits
+- **Bounded Optimization** - AI stays within safe voltage (1.0–1.2 V VDDQ) and timing ranges
+- **JEDEC Compliance** checking for all configurations
+- **Stability Scoring** for parameter combinations
+- **Voltage bounds clamping** during thermal simulation
 
 ### 🔧 **Professional Integrations**
 
-- **Tool Imports/Exports** - ASUS AI Suite, MSI Dragon Center, Intel XTU
 - **Database Integration** - CPU, Motherboard, Memory Kit databases
-- **Cross-Brand Compatibility** - Intel, AMD, NVIDIA platforms
+- **Cross-Brand Compatibility** - Intel, AMD platforms
 - **Benchmark Integration** - Performance validation
 
 ---
@@ -115,10 +132,10 @@ python -m streamlit run src/web_interface/main.py --server.port 8521
 |-----------|---------|-------------|
 | **Python** | 3.9+ | 3.11+ |
 | **OS** | Windows 10/11 or Linux | Ubuntu 22.04+/Fedora 38+ |
-| **RAM** | 8GB | 16GB+ |
-| **Storage** | 2GB | 5GB+ |
-| **Hardware Access** | User | Admin/Root (for live tuning) |
-| **GPU** | Optional | CUDA/ROCm (for AI acceleration) |
+| **RAM** | 8 GB | 16 GB+ |
+| **Storage** | 2 GB | 5 GB+ |
+| **Hardware Access** | User | Admin/Root (for live tuning on Linux) |
+| **GPU** | Optional | CUDA (for PyTorch AI acceleration) |
 
 ---
 
@@ -126,11 +143,17 @@ python -m streamlit run src/web_interface/main.py --server.port 8521
 
 | Tab | Description | Features |
 |-----|-------------|----------|
-| **🎯 Simulation** | Parameter tuning sandbox | Manual configuration, validation, JEDEC compliance |
-| **🧠 AI Optimization** | Automated optimization | Multiple AI engines, hyperparameter tuning |  
+| **⚙️ Manual Tuning** | Parameter tuning sandbox | Manual configuration, validation, JEDEC compliance |
+| **⚡ Simulation** | Performance simulation | Bandwidth, latency, power, stability testing |
+| **🧠 AI Optimization** | Automated optimization | GA, RL, and ensemble engines |
+| **🎮 Gaming Performance** | Game-oriented tuning | Latency-focused profiles |
+| **📊 Analysis** | Configuration analysis | Side-by-side comparisons |
+| **🚀 Enhanced Features** | Advanced tools hub | 3D charts, AI assistant, monitoring |
+| **📈 Benchmarks** | Performance validation | Benchmark scoring |
+| **💻 Hardware Detection** | System profiling | Auto-detect RAM modules |
 | **⚡ Live Tuning** | Real hardware control | Safety locks, backup/restore, emergency stops |
-| **🚀 Enhanced Features** | Advanced tools hub | 7 specialized sub-tabs with cutting-edge features |
-| **🔧 Advanced Integration** | Hardware databases | CPU/MB/RAM detection, cross-platform compatibility |
+| **🔄 Cross-Brand Tuning** | Multi-platform support | Intel/AMD compatibility |
+| **🔬 Advanced Integration** | Hardware databases | CPU/MB/RAM databases |
 
 ---
 
@@ -169,13 +192,13 @@ See also: `docs/TESTING.md` for a concise testing guide.
 - **JEDEC compliance** checking for all configurations
 - **Stability scoring** for parameter combinations
 - **Gradual tuning** with incremental steps
+- **Constraint repair** ensures every generated config satisfies DDR5 timing rules
 
-### System Safety  
+### System Safety
 
 - **Privilege escalation** warnings and confirmations
 - **System monitoring** during live tuning sessions
 - **Rollback mechanisms** for failed configurations
-- **Health monitoring** with predictive maintenance
 
 ---
 
@@ -184,13 +207,11 @@ See also: `docs/TESTING.md` for a concise testing guide.
 | Metric | Value | Status |
 |--------|-------|--------|
 | **Version** | 6.0.2 | ✅ Current |
-| **Tests** | 29/29 passing | ✅ All Green |
-| **Code Quality** | A+ Grade | ✅ Excellent |
-| **Security** | No Issues | ✅ Secure |
-| **Performance** | <100ms response | ✅ Fast |
-| **Platform Support** | Linux/Windows/macOS | ✅ Cross-platform |
-| **AI Models** | 5+ engines | ✅ Advanced |
-| **Hardware Support** | Intel/AMD/NVIDIA | ✅ Universal |
+| **Tests** | 98 passing | ✅ All Green |
+| **DDR5 Frequencies** | 4000–8400 MT/s | ✅ JEDEC Compliant |
+| **Platform Support** | Linux (full) / Windows (detection) / macOS (detection) | ✅ Cross-platform |
+| **AI Engines** | GA, RL, Ensemble, AutoML | ✅ Advanced |
+| **Safety** | Voltage clamping, timing validation, backup/restore | ✅ Secure |
 
 ---
 
@@ -222,7 +243,7 @@ pre-commit install
 Your support helps fund:
 
 - **Hardware testing** on diverse platforms
-- **AI model training** and optimization  
+- **AI model training** and optimization
 - **New feature development**
 - **Documentation** and tutorials
 
@@ -253,8 +274,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
----
-
 Built with ❤️ for the DDR5 optimization community
-
-Empowering enthusiasts and professionals with AI-driven memory tuning
