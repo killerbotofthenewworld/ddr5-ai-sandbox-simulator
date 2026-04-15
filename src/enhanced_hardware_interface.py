@@ -150,6 +150,10 @@ class EnhancedHardwareInterface:
                         if 'coretemp' in name.lower() or 'cpu' in name.lower():
                             cpu_temp = entries[0].current if entries else 0.0
                             break
+
+            # Windows fallback: WMI thermal zone
+            if not cpu_temp and platform.system() == "Windows":
+                cpu_temp = self._get_windows_cpu_temperature()
             
             # Memory temperatures (from hardware detector if available)
             memory_temps = []
@@ -167,7 +171,7 @@ class EnhancedHardwareInterface:
             
             # Fan speeds
             cpu_fan_rpm = 0
-            case_fans = []
+            case_fans: list = []
             if hasattr(psutil, "sensors_fans"):
                 fans_fn = getattr(psutil, "sensors_fans", None)
                 fans = fans_fn() if callable(fans_fn) else None
@@ -198,6 +202,30 @@ class EnhancedHardwareInterface:
                 case_fan_rpm=[800, 900],
                 thermal_throttling=False
             )
+
+    @staticmethod
+    def _get_windows_cpu_temperature() -> float:
+        """Get CPU temperature on Windows via WMI thermal zone."""
+        try:
+            import subprocess
+            result = subprocess.run(
+                [
+                    "powershell", "-NoProfile", "-Command",
+                    "(Get-CimInstance -Namespace root/WMI "
+                    "-ClassName MSAcpi_ThermalZoneTemperature "
+                    "-ErrorAction SilentlyContinue "
+                    "| Select-Object -First 1).CurrentTemperature",
+                ],
+                capture_output=True, text=True, timeout=10,
+            )
+            if result.returncode == 0 and result.stdout.strip():
+                raw = float(result.stdout.strip())
+                celsius = (raw / 10.0) - 273.15
+                if 0 < celsius < 120:
+                    return celsius
+        except Exception:
+            pass
+        return 0.0
     
     def get_power_metrics(self) -> PowerMetrics:
         """Get real-time power consumption metrics."""

@@ -101,14 +101,15 @@ python demo_advanced_ai.py
 - **Stability Testing** - Configurable stress levels with scoring and recommendations
 - **JEDEC Compliance** - Validates frequencies (DDR5-4000 to DDR5-8400), timings, and voltages
 
-### ⚡ **Hardware Integration** (Linux fully supported, Windows read-only)
+### ⚡ **Hardware Integration** (Linux & Windows)
 
 - **Hardware Detection** - Automatic system profiling via dmidecode / WMI / system_profiler
-- **Live Tuning** - Safety locks, backup/restore, emergency stops (Linux)
+- **Live Tuning** - Safety locks, backup/restore, emergency stops
 - **WebSocket Monitoring** - Real-time metrics streaming
 - **Emergency Recovery** - Instant parameter restoration
+- **Windows Support** - WMI-based memory detection, Event Log stability checks, thermal monitoring via WMI/psutil, vendor-tool detection via registry, backup/restore of memory configuration snapshots
 
-> **Note:** Direct hardware write operations (apply settings, restore backup) are implemented on Linux with appropriate privileges. Windows support is detection-only; settings must be applied manually through BIOS.
+> **Note:** On both Linux and Windows, direct register-level memory writes require kernel drivers or vendor tools. The tuner will detect installed vendor tools (MSI Dragon Center, ASUS AI Suite, etc.) and guide you to apply settings through those tools or via BIOS. Backup/restore captures a full WMI snapshot on Windows and dmidecode/UEFI variables on Linux.
 
 ### 🛡️ **Safety & Validation**
 
@@ -134,7 +135,7 @@ python demo_advanced_ai.py
 | **OS** | Windows 10/11 or Linux | Ubuntu 22.04+/Fedora 38+ |
 | **RAM** | 8 GB | 16 GB+ |
 | **Storage** | 2 GB | 5 GB+ |
-| **Hardware Access** | User | Admin/Root (for live tuning on Linux) |
+| **Hardware Access** | User | Admin/Root (for live tuning) |
 | **GPU** | Optional | CUDA (for PyTorch AI acceleration) |
 
 ---

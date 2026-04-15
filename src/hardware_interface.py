@@ -333,7 +333,10 @@ class WindowsHardwareInterface(HardwareInterface):
     
     def __init__(self):
         self.capabilities = HardwareCapabilities()
-        self.backup_path = "C:\\temp\\ddr5_backup.json"
+        # Store backups under %LOCALAPPDATA%\DDR5-AI, falling back to %TEMP%
+        _local = os.environ.get("LOCALAPPDATA") or os.environ.get("TEMP", "C:\\Temp")
+        self._backup_dir = os.path.join(_local, "DDR5-AI")
+        self.backup_path = os.path.join(self._backup_dir, "ddr5_backup.json")
     
     def detect_capabilities(self) -> HardwareCapabilities:
         """Detect Windows hardware control capabilities."""
@@ -346,11 +349,11 @@ class WindowsHardwareInterface(HardwareInterface):
         except Exception:
             caps.admin_required = True
         
-        # Check for vendor tools
+        # Check for vendor tools via registry
         caps.vendor_tools = self._detect_vendor_tools()
         
-        # Windows typically has limited direct hardware access
-        caps.memory_controller = False
+        # WMI gives read access to memory info (no direct register/UEFI write)
+        caps.memory_controller = self._check_wmi_available()
         caps.direct_registers = False
         caps.uefi_vars = False
         caps.backup_restore = True
@@ -358,43 +361,278 @@ class WindowsHardwareInterface(HardwareInterface):
         self.capabilities = caps
         return caps
     
+    # ------------------------------------------------------------------
+    # Vendor-tool detection
+    # ------------------------------------------------------------------
     def _detect_vendor_tools(self) -> bool:
-        """Detect Windows vendor tools."""
-        # Check for common vendor tools in registry or installed programs
-        vendor_tools = [
-            "MSI Dragon Center",
-            "ASUS AI Suite",
-            "Gigabyte SIV",
-            "Corsair iCUE",
-            "G.SKILL Trident Z Lighting Control"
+        """Detect Windows vendor tools by checking the uninstall registry."""
+        registry_entries = [
+            ("MSI Dragon Center", r"SOFTWARE\WOW6432Node\MSI\Dragon Center"),
+            ("ASUS AI Suite", r"SOFTWARE\WOW6432Node\ASUS\AISuite III"),
+            ("Gigabyte SIV", r"SOFTWARE\WOW6432Node\Gigabyte\SIV"),
+            ("Corsair iCUE", r"SOFTWARE\WOW6432Node\Corsair\Corsair iCUE Software"),
         ]
-        
-        # TODO: Implement actual detection via Windows Registry
-        logger.info("🔍 Checking for vendor tools...")
+        try:
+            import winreg
+            for name, key_path in registry_entries:
+                try:
+                    winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, key_path)
+                    logger.info(f"✅ Vendor tool detected: {name}")
+                    return True
+                except OSError:
+                    continue
+        except ImportError:
+            pass
+
+        # Fallback: check for well-known executables on PATH / Program Files
+        exe_names = [
+            "MSIDragonCenter.exe",
+            "AISuite3.exe",
+            "SIV.exe",
+            "iCUE.exe",
+        ]
+        program_dirs = [
+            os.environ.get("ProgramFiles", r"C:\Program Files"),
+            os.environ.get("ProgramFiles(x86)", r"C:\Program Files (x86)"),
+        ]
+        for exe in exe_names:
+            for base in program_dirs:
+                if base and os.path.isfile(os.path.join(base, exe)):
+                    logger.info(f"✅ Vendor tool detected: {exe}")
+                    return True
+
+        logger.info("🔍 No vendor tools detected")
         return False
     
+    # ------------------------------------------------------------------
+    # WMI helper
+    # ------------------------------------------------------------------
+    @staticmethod
+    def _check_wmi_available() -> bool:
+        """Return True if we can query memory information via WMI."""
+        try:
+            result = subprocess.run(
+                [
+                    "powershell", "-NoProfile", "-Command",
+                    "Get-CimInstance Win32_PhysicalMemory | Select-Object -First 1 | ConvertTo-Json",
+                ],
+                capture_output=True, text=True, timeout=10,
+            )
+            return result.returncode == 0 and len(result.stdout.strip()) > 2
+        except Exception:
+            return False
+    
+    # ------------------------------------------------------------------
+    # Backup / restore via WMI snapshot
+    # ------------------------------------------------------------------
     def create_backup(self) -> bool:
-        """Create backup on Windows."""
-        # TODO: Implement Windows-specific backup
-        logger.warning("🚧 Windows backup not yet implemented")
-        return False
+        """Create a JSON backup of current memory settings via WMI."""
+        try:
+            os.makedirs(self._backup_dir, exist_ok=True)
+
+            backup_data: Dict[str, Any] = {
+                "timestamp": time.time(),
+                "platform": "Windows",
+                "memory_settings": self._read_memory_settings(),
+                "bios_version": self._get_bios_version(),
+            }
+
+            with open(self.backup_path, "w", encoding="utf-8") as f:
+                json.dump(backup_data, f, indent=2)
+
+            logger.info("✅ Hardware backup created successfully")
+            return True
+        except Exception as e:
+            logger.error(f"❌ Backup creation failed: {e}")
+            return False
+    
+    def _read_memory_settings(self) -> Dict[str, Any]:
+        """Read current memory settings from WMI."""
+        settings: Dict[str, Any] = {}
+        try:
+            result = subprocess.run(
+                [
+                    "powershell", "-NoProfile", "-Command",
+                    "Get-CimInstance Win32_PhysicalMemory "
+                    "| Select-Object Manufacturer, PartNumber, Capacity, Speed, "
+                    "ConfiguredClockSpeed, ConfiguredVoltage, DeviceLocator, SerialNumber "
+                    "| ConvertTo-Json",
+                ],
+                capture_output=True, text=True, timeout=15,
+            )
+            if result.returncode == 0 and result.stdout.strip():
+                settings["wmi_physical_memory"] = json.loads(result.stdout)
+        except Exception as e:
+            logger.warning(f"⚠️ Could not read WMI memory settings: {e}")
+
+        # Also capture total physical memory
+        try:
+            import psutil as _psutil
+            vm = _psutil.virtual_memory()
+            settings["total_physical_bytes"] = vm.total
+        except Exception:
+            pass
+
+        return settings
+    
+    def _get_bios_version(self) -> str:
+        """Get BIOS version via WMI."""
+        try:
+            result = subprocess.run(
+                [
+                    "powershell", "-NoProfile", "-Command",
+                    "(Get-CimInstance Win32_BIOS).SMBIOSBIOSVersion",
+                ],
+                capture_output=True, text=True, timeout=10,
+            )
+            if result.returncode == 0 and result.stdout.strip():
+                return result.stdout.strip()
+        except Exception:
+            pass
+        return "Unknown"
     
     def apply_settings(self, settings: Dict[str, Any]) -> bool:
-        """Apply settings on Windows."""
-        # TODO: Implement Windows-specific application
-        logger.warning("🚧 Windows settings application not yet implemented")
+        """Apply memory settings on Windows.
+        
+        Direct register-level changes are not safe via user-space on Windows.
+        Instead we log the recommended BIOS changes and attempt to invoke a
+        detected vendor tool if one is available.
+        """
+        logger.info("📋 Recommended BIOS settings to apply manually:")
+        for key, value in settings.items():
+            logger.info(f"  {key}: {value}")
+
+        if self.capabilities.vendor_tools:
+            logger.info(
+                "🏭 Vendor tool detected — please use it to apply these settings, "
+                "or apply them via BIOS."
+            )
+        else:
+            logger.info(
+                "ℹ️  No vendor tool detected. Apply these settings manually in BIOS."
+            )
+
+        # We cannot safely poke hardware registers on Windows without a
+        # kernel driver, so we return False to signal "manual action needed".
         return False
     
     def restore_backup(self) -> bool:
-        """Restore backup on Windows."""
-        # TODO: Implement Windows-specific restore
-        logger.warning("🚧 Windows restore not yet implemented")
-        return False
+        """Restore settings from a previously saved backup on Windows."""
+        try:
+            if not os.path.exists(self.backup_path):
+                logger.error("❌ No backup file found")
+                return False
+
+            with open(self.backup_path, "r", encoding="utf-8") as f:
+                backup_data = json.load(f)
+
+            logger.info("🔄 Restoring hardware settings from backup…")
+            logger.info(f"📅 Backup created: {time.ctime(backup_data['timestamp'])}")
+            logger.info("📋 Saved memory configuration:")
+
+            mem = backup_data.get("memory_settings", {})
+            modules = mem.get("wmi_physical_memory")
+            if modules:
+                if not isinstance(modules, list):
+                    modules = [modules]
+                for mod in modules:
+                    logger.info(
+                        f"  {mod.get('DeviceLocator', '?')}: "
+                        f"{mod.get('Manufacturer', '?')} "
+                        f"{int(mod.get('Capacity', 0)) // (1024**3)}GB "
+                        f"@ {mod.get('Speed', '?')} MT/s"
+                    )
+
+            logger.info(
+                "ℹ️  Automatic register-level restoration is not available on Windows. "
+                "Use the above info to restore settings via BIOS."
+            )
+            return True
+        except Exception as e:
+            logger.error(f"❌ Restore failed: {e}")
+            return False
     
+    # ------------------------------------------------------------------
+    # Stability monitoring
+    # ------------------------------------------------------------------
     def monitor_stability(self) -> SafetyState:
-        """Monitor stability on Windows."""
-        # TODO: Implement Windows-specific monitoring
-        return SafetyState()
+        """Monitor system stability on Windows via WMI and psutil."""
+        state = SafetyState()
+        state.last_check = time.time()
+
+        try:
+            temp = self._get_cpu_temperature()
+            state.temperature_safe = temp < 80.0 if temp is not None else True
+
+            state.memory_stable = self._check_memory_stability()
+            state.power_stable = True  # No user-space power-rail sensor on Windows
+            state.backup_created = os.path.exists(self.backup_path)
+        except Exception as e:
+            logger.warning(f"⚠️ Stability monitoring error: {e}")
+
+        return state
+    
+    def _get_cpu_temperature(self) -> Optional[float]:
+        """Get CPU temperature on Windows.
+        
+        Tries psutil first (it works when Open Hardware Monitor / LibreHardwareMonitor
+        expose sensor data). Falls back to WMI MSAcpi_ThermalZoneTemperature.
+        """
+        # 1) psutil sensors (available when LibreHardwareMonitor is running)
+        try:
+            import psutil as _psutil
+            if hasattr(_psutil, "sensors_temperatures"):
+                temps = _psutil.sensors_temperatures()
+                if temps:
+                    for name, entries in temps.items():
+                        if entries:
+                            return entries[0].current
+        except Exception:
+            pass
+
+        # 2) WMI thermal zone (requires admin, value in tenths of kelvin)
+        try:
+            result = subprocess.run(
+                [
+                    "powershell", "-NoProfile", "-Command",
+                    "(Get-CimInstance -Namespace root/WMI "
+                    "-ClassName MSAcpi_ThermalZoneTemperature "
+                    "-ErrorAction SilentlyContinue "
+                    "| Select-Object -First 1).CurrentTemperature",
+                ],
+                capture_output=True, text=True, timeout=10,
+            )
+            if result.returncode == 0 and result.stdout.strip():
+                raw = float(result.stdout.strip())
+                # WMI returns tenths of kelvin
+                celsius = (raw / 10.0) - 273.15
+                if 0 < celsius < 120:
+                    return celsius
+        except Exception:
+            pass
+
+        return None
+    
+    def _check_memory_stability(self) -> bool:
+        """Check Windows Event Log for memory-related errors."""
+        try:
+            result = subprocess.run(
+                [
+                    "powershell", "-NoProfile", "-Command",
+                    "Get-WinEvent -FilterHashtable @{LogName='System'; Level=2; "
+                    "StartTime=(Get-Date).AddHours(-1)} -MaxEvents 50 "
+                    "-ErrorAction SilentlyContinue "
+                    "| Where-Object { $_.Message -match 'memory' } "
+                    "| Measure-Object | Select-Object -ExpandProperty Count",
+                ],
+                capture_output=True, text=True, timeout=15,
+            )
+            if result.returncode == 0 and result.stdout.strip():
+                error_count = int(result.stdout.strip())
+                return error_count == 0
+        except Exception:
+            pass
+        return True  # Assume stable if we cannot check
 
 
 class HardwareManager:

@@ -378,7 +378,7 @@ class HardwareDetector:
             'machine': platform.machine()
         }
         
-        # Try to get CPU info on Linux
+        # Try to get CPU info per platform
         if platform.system() == "Linux":
             try:
                 with open('/proc/cpuinfo', 'r') as f:
@@ -387,6 +387,19 @@ class HardwareDetector:
                 if cpu_match:
                     info['cpu_model'] = cpu_match.group(1).strip()
             except FileNotFoundError:
+                pass
+        elif platform.system() == "Windows":
+            try:
+                result = subprocess.run(
+                    [
+                        "powershell", "-NoProfile", "-Command",
+                        "(Get-CimInstance Win32_Processor | Select-Object -First 1).Name",
+                    ],
+                    capture_output=True, text=True, timeout=10,
+                )
+                if result.returncode == 0 and result.stdout.strip():
+                    info['cpu_model'] = result.stdout.strip()
+            except (subprocess.TimeoutExpired, FileNotFoundError):
                 pass
         
         return info

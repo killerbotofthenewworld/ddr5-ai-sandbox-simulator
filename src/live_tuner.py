@@ -266,12 +266,33 @@ class LiveDDR5Tuner:
                                 return entries[0].current
             
             # Fallback: try parsing /sys/class/thermal on Linux
-            try:
-                with open('/sys/class/thermal/thermal_zone0/temp', 'r') as f:
-                    temp = int(f.read()) / 1000.0
-                    return temp
-            except:
-                pass
+            if os.name != 'nt':
+                try:
+                    with open('/sys/class/thermal/thermal_zone0/temp', 'r') as f:
+                        temp = int(f.read()) / 1000.0
+                        return temp
+                except Exception:
+                    pass
+            else:
+                # Windows fallback: WMI thermal zone (requires admin, tenths of kelvin)
+                try:
+                    result = subprocess.run(
+                        [
+                            "powershell", "-NoProfile", "-Command",
+                            "(Get-CimInstance -Namespace root/WMI "
+                            "-ClassName MSAcpi_ThermalZoneTemperature "
+                            "-ErrorAction SilentlyContinue "
+                            "| Select-Object -First 1).CurrentTemperature",
+                        ],
+                        capture_output=True, text=True, timeout=10,
+                    )
+                    if result.returncode == 0 and result.stdout.strip():
+                        raw = float(result.stdout.strip())
+                        celsius = (raw / 10.0) - 273.15
+                        if 0 < celsius < 120:
+                            return celsius
+                except Exception:
+                    pass
             
         except Exception:
             pass
