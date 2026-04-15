@@ -105,7 +105,7 @@ class PerfectDDR5Optimizer:
     def _initialize_perfect_database(self) -> Dict[str, List[Dict]]:
         """Initialize comprehensive DDR5 performance database."""
         return {
-            'ddr5_3200': [
+            'ddr5_4000': [
                 {'cl': 14, 'trcd': 14, 'trp': 14, 'tras': 32, 'vddq': 1.08,
                  'performance': 88.5, 'stability': 98.0, 'power': 2200},
                 {'cl': 16, 'trcd': 16, 'trp': 16, 'tras': 36, 'vddq': 1.10,
@@ -436,7 +436,7 @@ class PerfectDDR5Optimizer:
                     'trp': config['trp'],
                     'tras': config['tras'],
                     'trc': config['tras'] + config['trp'],
-                    'trfc': 280 + (frequency - 3200) // 400 * 20,
+                    'trfc': 280 + (frequency - 4000) // 400 * 20,
                     'vddq': config['vddq'],
                     'vpp': 1.8,
                     'bandwidth_gbps': config['performance'],
@@ -451,7 +451,7 @@ class PerfectDDR5Optimizer:
         
         # Generate simulated samples (80% of total)
         sim_samples = sample_size - len(samples)
-        frequencies = [3200, 4000, 4800, 5600, 6400, 7200, 8000]
+        frequencies = [4000, 4800, 5200, 5600, 6400, 7200, 8000]
         
         for _ in range(sim_samples):
             frequency = np.random.choice(frequencies)
@@ -881,7 +881,7 @@ class PerfectDDR5Optimizer:
         if np.random.random() < mutation_rate:
             # Mutate frequency
             freq_change = np.random.choice([-400, -200, 0, 200, 400])
-            mutated.frequency = max(3200, min(8400, config.frequency + freq_change))
+            mutated.frequency = max(4000, min(8400, config.frequency + freq_change))
         
         if np.random.random() < mutation_rate:
             # Mutate CL
@@ -1262,7 +1262,7 @@ class PerfectDDR5Optimizer:
         for _ in range(sample_count):
             # Generate random configuration
             config = DDR5Configuration(
-                frequency=np.random.choice([3200, 4000, 4800, 5600, 6000, 6400]),
+                frequency=np.random.choice([4000, 4400, 4800, 5600, 6000, 6400]),
                 timings=DDR5TimingParameters(
                     cl=np.random.randint(28, 46),
                     trcd=np.random.randint(28, 46),
@@ -1362,7 +1362,7 @@ class PerfectDDR5Optimizer:
             elif base_config:
                 # Mutate base configuration
                 config = DDR5Configuration(
-                    frequency=max(3200, min(8400, base_config.frequency + np.random.randint(-800, 800))),
+                    frequency=max(4000, min(8400, base_config.frequency + np.random.randint(-800, 800))),
                     timings=DDR5TimingParameters(
                         cl=max(20, min(60, base_config.timings.cl + np.random.randint(-5, 5))),
                         trcd=max(20, min(60, base_config.timings.trcd + np.random.randint(-5, 5))),
@@ -1377,7 +1377,7 @@ class PerfectDDR5Optimizer:
             else:
                 # Generate random configuration
                 config = DDR5Configuration(
-                    frequency=np.random.choice([3200, 4000, 4800, 5600, 6000, 6400]),
+                    frequency=np.random.choice([4000, 4400, 4800, 5600, 6000, 6400]),
                     timings=DDR5TimingParameters(
                         cl=np.random.randint(28, 46),
                         trcd=np.random.randint(28, 46),

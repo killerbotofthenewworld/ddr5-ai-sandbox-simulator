@@ -129,7 +129,7 @@ def render_quick_ai_optimization():
         )
         
         target_frequency = st.slider(
-            "🎚️ Target Frequency (MT/s)", 3200, 8400, 5600, 100
+            "🎚️ Target Frequency (MT/s)", 4000, 8400, 5600, 100
         )
         
         use_hardware_detection = st.checkbox(

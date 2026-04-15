@@ -48,17 +48,15 @@ class DDR5Simulator:
         Returns:
             Dictionary with bandwidth metrics
         """
-        # Include frequency in cache key for different configs
+        # Include frequency, voltages, and key timings in cache key
         freq = self.current_config.frequency
-        cache_key = f"bandwidth_{access_pattern}_{queue_depth}_{freq}"
+        vddq = self.current_config.voltages.vddq
+        cl = self.current_config.timings.cl
+        cache_key = f"bandwidth_{access_pattern}_{queue_depth}_{freq}_{vddq}_{cl}"
         if cache_key in self.simulation_cache:
             return self.simulation_cache[cache_key]
         
         base_bandwidth = self.current_config.bandwidth_gbps
-        if base_bandwidth is None:
-            # Calculate theoretical bandwidth: freq * bus_width * channels / 8
-            # DDR5 has 64-bit bus width, typically dual channel = 128 bits
-            base_bandwidth = (self.current_config.frequency * 128) / 8 / 1000
         
         efficiency = self.performance_coefficients['bandwidth_efficiency']
         
@@ -109,17 +107,14 @@ class DDR5Simulator:
         Returns:
             Dictionary with latency metrics
         """
-        cache_key = f"latency_{access_pattern}_{bank_conflicts}"
+        freq = self.current_config.frequency
+        cl = self.current_config.timings.cl
+        cache_key = f"latency_{access_pattern}_{bank_conflicts}_{freq}_{cl}"
         if cache_key in self.simulation_cache:
             return self.simulation_cache[cache_key]
         
         # Calculate base latency if not set
         base_latency = self.current_config.latency_ns
-        if base_latency is None:
-            # Calculate latency from timings: CL / (frequency / 2) * 1000
-            # DDR5 frequency is in MT/s, so actual clock = frequency/2 MHz
-            base_latency = (self.current_config.timings.cl / 
-                           (self.current_config.frequency / 2000.0))  # ns
         
         # Access pattern impact
         pattern_penalty = {
@@ -159,7 +154,10 @@ class DDR5Simulator:
         Returns:
             Dictionary with power metrics
         """
-        cache_key = "power_consumption"
+        freq_key = self.current_config.frequency
+        vddq_key = self.current_config.voltages.vddq
+        vpp_key = self.current_config.voltages.vpp
+        cache_key = f"power_{freq_key}_{vddq_key}_{vpp_key}"
         if cache_key in self.simulation_cache:
             return self.simulation_cache[cache_key]
         
@@ -185,12 +183,8 @@ class DDR5Simulator:
         
         total_power = dynamic_power + static_power
         
-        # Calculate bandwidth if not set
+        # Calculate bandwidth for efficiency metric
         bandwidth_gbps = self.current_config.bandwidth_gbps
-        if bandwidth_gbps is None:
-            # Calculate theoretical bandwidth: frequency * data_width / 8
-            # DDR5 has 64-bit data width, double data rate
-            bandwidth_gbps = (self.current_config.frequency * 64 * 2) / (8 * 1000)
         
         result = {
             'dynamic_power_mw': dynamic_power,
@@ -198,7 +192,7 @@ class DDR5Simulator:
             'total_power_mw': total_power,
             'total_power_w': total_power / 1000,  # Convert to watts
             'power_efficiency_mb_per_mw': 
-                (bandwidth_gbps * 1000) / total_power
+                (bandwidth_gbps * 1000) / total_power if total_power > 0 else 0.0
         }
         
         self.simulation_cache[cache_key] = result
@@ -271,7 +265,10 @@ class DDR5Simulator:
         Returns:
             Stability score as a float (0.0 to 1.0).
         """
-        from advanced_ai_engine import AdvancedAIEngine
+        try:
+            from .advanced_ai_engine import AdvancedAIEngine
+        except ImportError:
+            from src.advanced_ai_engine import AdvancedAIEngine
 
         ai_engine = AdvancedAIEngine()
         return ai_engine.calculate_stability_score(self.current_config)
@@ -298,12 +295,27 @@ class DDR5Simulator:
             # Force recalculation of performance metrics for the new config
             self.current_config.calculate_performance_metrics()
         
+        # Save original voltages so we can restore them after thermal adjustment
+        original_vddq = self.current_config.voltages.vddq
+        original_vpp = self.current_config.voltages.vpp
+        
         try:
-            # Adjust configuration for temperature
+            # Adjust configuration for temperature (thermal droop simulation)
             thermal_coeff = self.performance_coefficients[
                 'thermal_coefficient']
             self.current_config.voltages.vddq -= temperature * thermal_coeff
             self.current_config.voltages.vpp -= temperature * thermal_coeff
+            
+            # Clamp voltages to safe minimums to prevent negative values
+            self.current_config.voltages.vddq = max(
+                0.9, self.current_config.voltages.vddq
+            )
+            self.current_config.voltages.vpp = max(
+                1.5, self.current_config.voltages.vpp
+            )
+            
+            # Clear cache since we modified voltages
+            self.simulation_cache.clear()
             
             # Run various simulations
             bandwidth_results = self.simulate_bandwidth("mixed")
@@ -338,7 +350,11 @@ class DDR5Simulator:
             }
         
         finally:
-            # Restore original config if changed
+            # Always restore original voltages after thermal simulation
+            self.current_config.voltages.vddq = original_vddq
+            self.current_config.voltages.vpp = original_vpp
+            self.simulation_cache.clear()
+            # Restore original config if a different one was provided
             if config:
                 self.current_config = old_config
     
@@ -401,12 +417,12 @@ class DDR5Simulator:
         """
         recommendations = []
         
-        if stability_score < 0.6:
+        if stability_score < 60:
             recommendations.append("Increase voltage slightly")
             recommendations.append("Reduce frequency")
-        if stability_score < 0.7:
+        if stability_score < 70:
             recommendations.append("Consider better cooling solutions")
-        if stability_score < 0.8:
+        if stability_score < 80:
             recommendations.append(
                 "Check memory seating and motherboard slots"
             )

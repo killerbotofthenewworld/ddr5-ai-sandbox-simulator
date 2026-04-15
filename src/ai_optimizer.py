@@ -59,7 +59,7 @@ class GeneticAlgorithmOptimizer:
         """Repair config to satisfy JEDEC-like timing relationships and bounds.
 
         Rules applied conservatively:
-        - Frequency within 3200..8400 MT/s
+        - Frequency within 4000..8400 MT/s
         - Voltages within nominal safe ranges (VDDQ 1.05..1.25, VPP 1.7..2.0)
         - tRAS >= tRCD + tCL
         - tRC >= tRAS + tRP
@@ -68,7 +68,7 @@ class GeneticAlgorithmOptimizer:
         repaired = cfg.model_copy()
 
         # Frequency
-        repaired.frequency = int(max(3200, min(8400, repaired.frequency)))
+        repaired.frequency = int(max(4000, min(8400, repaired.frequency)))
 
         # Voltages
         repaired.voltages.vddq = float(
@@ -104,7 +104,7 @@ class GeneticAlgorithmOptimizer:
             setattr(config.timings, timing_name, random.randint(min_val, max_val))
 
             # Randomly adjust frequency within DDR5 range
-            config.frequency = random.randint(3200, 8400)
+            config.frequency = random.randint(4000, 8400)
 
             # Randomly adjust voltages within safe range
             config.voltages.vddq = round(random.uniform(1.05, 1.25), 3)
@@ -166,7 +166,7 @@ class GeneticAlgorithmOptimizer:
         # Mutate frequency
         if random.random() < self.mutation_rate:
             adjustment = random.randint(-200, 200)
-            mutated.frequency = max(3200, min(8400, mutated.frequency + adjustment))
+            mutated.frequency = max(4000, min(8400, mutated.frequency + adjustment))
 
         # Mutate voltages
         if random.random() < self.mutation_rate:
@@ -353,7 +353,7 @@ class ReinforcementLearningOptimizer:
         actions = []
 
         # Frequency adjustments
-        if config.frequency > 3200:
+        if config.frequency > 4000:
             actions.append("freq_down")
         if config.frequency < 8400:
             actions.append("freq_up")
@@ -378,7 +378,7 @@ class ReinforcementLearningOptimizer:
         if action == "freq_up":
             new_config.frequency = min(8400, new_config.frequency + 100)
         elif action == "freq_down":
-            new_config.frequency = max(3200, new_config.frequency - 100)
+            new_config.frequency = max(4000, new_config.frequency - 100)
         elif action == "cl_up":
             new_config.timings.cl += 1
         elif action == "cl_down":

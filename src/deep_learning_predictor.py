@@ -577,7 +577,7 @@ class DeepLearningPredictor:
         config = DDR5Configuration()
         
         # Random but realistic values
-        config.frequency = np.random.randint(3200, 8400)
+        config.frequency = np.random.randint(4000, 8400)
         config.timings.cl = np.random.randint(14, 40)
         config.timings.trcd = np.random.randint(14, 40)
         config.timings.trp = np.random.randint(14, 40)

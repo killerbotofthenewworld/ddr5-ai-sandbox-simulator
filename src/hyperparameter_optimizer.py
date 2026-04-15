@@ -59,7 +59,7 @@ class HyperparameterOptimizer:
         # Generate diverse DDR5 configurations
         for _ in range(n_samples):
             # Random frequency selection
-            frequency = np.random.choice([3200, 4000, 4800, 5200, 5600, 6000, 6400, 6800, 7200])
+            frequency = np.random.choice([4000, 4400, 4800, 5200, 5600, 6000, 6400, 6800, 7200])
             
             # Generate timing parameters with realistic relationships
             base_cl = np.random.randint(14, 48)

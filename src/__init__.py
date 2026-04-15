@@ -4,7 +4,7 @@ DDR5 AI Sandbox Simulator
 The Ultimate AI-Powered DDR5 Memory Tuning Simulator
 """
 
-__version__ = "5.0.0"
+__version__ = "6.0.2"
 __author__ = "DDR5 AI Sandbox Simulator Team"
 __license__ = "MIT"
 

@@ -463,7 +463,7 @@ class RevolutionaryDDR5Features:
             tras = max(30, int(coords[3]))
             vddq = max(1.05, min(1.25, coords[4] / 1000))
             vpp = max(1.70, min(1.90, coords[5] / 1000))
-            frequency = max(3200, min(8400, int(coords[6] * 100)))
+            frequency = max(4000, min(8400, int(coords[6] * 100)))
             
             from src.ddr5_models import DDR5Configuration, DDR5TimingParameters, DDR5VoltageParameters
             
@@ -481,7 +481,7 @@ class RevolutionaryDDR5Features:
         base_score = 50
         
         # Frequency bonus
-        freq_bonus = (config.frequency - 3200) / 100
+        freq_bonus = (config.frequency - 4000) / 100
         
         # Timing efficiency
         timing_eff = 100 / (config.timings.cl + config.timings.trcd + config.timings.trp)

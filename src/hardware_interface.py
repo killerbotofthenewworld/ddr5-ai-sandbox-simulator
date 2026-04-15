@@ -83,8 +83,11 @@ class LinuxHardwareInterface(HardwareInterface):
         """Detect Linux hardware control capabilities."""
         caps = HardwareCapabilities(platform="Linux")
         
-        # Check for root/sudo access
-        caps.admin_required = os.geteuid() != 0
+        # Check for root/sudo access (geteuid is Unix-only)
+        try:
+            caps.admin_required = os.geteuid() != 0
+        except AttributeError:
+            caps.admin_required = True
         
         # Check for UEFI variables access
         if os.path.exists("/sys/firmware/efi/efivars"):
@@ -119,7 +122,9 @@ class LinuxHardwareInterface(HardwareInterface):
         ]
         
         for tool in vendor_tools:
-            if subprocess.run(["which", tool], capture_output=True).returncode == 0:
+            if subprocess.run(
+                ["which", tool], capture_output=True, timeout=5
+            ).returncode == 0:
                 logger.info(f"✅ Vendor tool detected: {tool}")
                 return True
         
@@ -201,7 +206,7 @@ class LinuxHardwareInterface(HardwareInterface):
                                 # Skip first 4 bytes (attributes)
                                 data = f.read()[4:]
                                 uefi_vars[os.path.basename(var_file)] = data.hex()
-                        except:
+                        except (OSError, IOError):
                             continue
             
         except Exception as e:
@@ -217,7 +222,7 @@ class LinuxHardwareInterface(HardwareInterface):
                 capture_output=True, text=True, check=True
             )
             return result.stdout.strip()
-        except:
+        except Exception:
             return "Unknown"
     
     def apply_settings(self, settings: Dict[str, Any]) -> bool:
@@ -304,7 +309,7 @@ class LinuxHardwareInterface(HardwareInterface):
             
             return None
             
-        except:
+        except Exception:
             return None
     
     def _check_memory_stability(self) -> bool:
@@ -312,14 +317,14 @@ class LinuxHardwareInterface(HardwareInterface):
         try:
             # Check for memory errors in dmesg
             result = subprocess.run(
-                ["dmesg", "|", "grep", "-i", "memory.*error"],
-                shell=True, capture_output=True, text=True
+                "dmesg | grep -i 'memory.*error'",
+                shell=True, capture_output=True, text=True, timeout=10
             )
             
             # If no memory errors found, consider stable
             return len(result.stdout.strip()) == 0
             
-        except:
+        except Exception:
             return True  # Assume stable if cannot check
 
 
@@ -338,7 +343,7 @@ class WindowsHardwareInterface(HardwareInterface):
         try:
             import ctypes
             caps.admin_required = not ctypes.windll.shell32.IsUserAnAdmin()
-        except:
+        except Exception:
             caps.admin_required = True
         
         # Check for vendor tools

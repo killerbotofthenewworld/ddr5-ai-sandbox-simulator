@@ -117,7 +117,7 @@ class DDR5Configuration(BaseModel):
     
     # Basic specifications
     frequency: int = Field(
-        default=5600, ge=3200, le=8400, description="Memory frequency in MT/s"
+        default=5600, ge=4000, le=8400, description="Memory frequency in MT/s"
     )
     capacity: int = Field(default=16, description="Capacity per stick in GB")
     rank_count: int = Field(
@@ -191,9 +191,13 @@ class DDR5Configuration(BaseModel):
     @field_validator('frequency')
     @classmethod
     def validate_frequency(cls, v):
-        """Ensure frequency is a valid DDR5 speed."""
+        """Ensure frequency is a valid DDR5 speed bin.
+        
+        Includes both JEDEC standard and common XMP/EXPO profiles.
+        DDR5 starts at 4000 MT/s; lower values are snapped to nearest bin.
+        """
         valid_speeds = [
-            3200, 3600, 4000, 4400, 4800, 5200, 5600, 6000,
+            4000, 4400, 4800, 5200, 5600, 6000,
             6400, 6800, 7200, 7600, 8000, 8400
         ]
         if v not in valid_speeds:

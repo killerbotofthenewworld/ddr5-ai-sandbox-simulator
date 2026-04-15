@@ -31,7 +31,7 @@ except FileNotFoundError:
 
 setup(
     name="ddr5-ai-sandbox-simulator",
-    version="6.0.0",
+    version="6.0.2",
     author="DDR5 AI Sandbox Simulator Team",
     author_email="",
     description=(

@@ -166,7 +166,7 @@ def render_ai_analysis_section():
     col1, col2 = st.columns(2)
     
     with col1:
-        frequency = st.slider("Frequency (MT/s)", 3200, 8400, 5600, 100)
+        frequency = st.slider("Frequency (MT/s)", 4000, 8400, 5600, 100)
         cl = st.slider("CAS Latency", 16, 60, 32, 1)
         trcd = st.slider("tRCD", 16, 60, 32, 1)
         trp = st.slider("tRP", 16, 60, 32, 1)

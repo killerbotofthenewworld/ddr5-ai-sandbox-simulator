@@ -440,7 +440,7 @@ class LiveTuningSafetyValidator:
         self, config: DDR5Configuration, _modules: List[DetectedRAMModule]
     ) -> float:
         base_temp = 45.0
-        freq_factor = (config.frequency - 3200) / 100 * 2.0
+        freq_factor = (config.frequency - 4000) / 100 * 2.0
         voltage_factor = (config.voltages.vddq - 1.1) * 20.0
         total = base_temp + freq_factor + voltage_factor
         return max(30.0, total + random.uniform(-5, 10))

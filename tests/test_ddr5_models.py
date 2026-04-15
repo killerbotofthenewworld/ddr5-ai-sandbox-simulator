@@ -147,9 +147,10 @@ class TestDDR5Configuration:
         )  # type: ignore[index]
 
     def test_validate_jedec_frequency_violation(self):
-        """Valid DDR speed not in JEDEC list should report frequency violation."""
-        # 3600 is accepted by the validator but not in JEDEC list
-        config = DDR5Configuration(frequency=3600)
+        """A non-JEDEC frequency should report frequency violation."""
+        config = DDR5Configuration(frequency=5600)
+        # Manually set a non-JEDEC frequency to bypass field validation
+        config.frequency = 5000
         jedec = config.validate_jedec_compliance()
         assert len(jedec["jedec_frequency_violations"]) > 0  # type: ignore[index]
 

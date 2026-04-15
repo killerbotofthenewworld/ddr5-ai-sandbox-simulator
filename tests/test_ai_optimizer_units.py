@@ -108,7 +108,7 @@ def test_ga_enforce_jedec_constraints():
         vpp=2.5,  # too high
     )
     fixed = ga._enforce_jedec_constraints(bad)
-    assert 3200 <= fixed.frequency <= 8400
+    assert 4000 <= fixed.frequency <= 8400
     assert 1.05 <= fixed.voltages.vddq <= 1.25
     assert 1.7 <= fixed.voltages.vpp <= 2.0
     # Derived relations
@@ -118,7 +118,7 @@ def test_ga_enforce_jedec_constraints():
 
 def test_rl_actions_and_apply():
     rl = ReinforcementLearningOptimizer(epsilon=0.0)  # deterministic choose from Q
-    cfg = make_config(freq=3300, cl=10, vddq=1.10)
+    cfg = make_config(freq=4400, cl=10, vddq=1.10)
     actions = rl.get_actions(cfg)
     # Can go up in freq, down in cl, up/down in vddq
     assert "freq_up" in actions and "cl_down" in actions and "vddq_down" in actions

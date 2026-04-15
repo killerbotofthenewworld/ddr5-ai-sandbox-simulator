@@ -47,7 +47,7 @@ class SafetyLimits:
     max_cas_latency: int = 60        # Maximum reasonable CAS latency
     min_cas_latency: int = 12        # Minimum reasonable CAS latency
     max_frequency: int = 8400        # Maximum DDR5 frequency
-    min_frequency: int = 3200        # Minimum DDR5 frequency
+    min_frequency: int = 4000        # Minimum DDR5 frequency
 
 
 @dataclass
@@ -363,7 +363,7 @@ class LiveDDR5Tuner:
         """Emergency frequency reduction."""
         if self.current_config:
             print("🐌 Reducing frequency to safe levels...")
-            safe_freq = max(3200, self.current_config.frequency - 400)
+            safe_freq = max(4000, self.current_config.frequency - 400)
             # Recalculate timings for lower frequency
             safe_config = self._create_safe_config(safe_freq)
             self._apply_configuration_safe(safe_config)
