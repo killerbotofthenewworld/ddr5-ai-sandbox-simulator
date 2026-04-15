@@ -6,6 +6,7 @@ Provides direct hardware control capabilities with comprehensive safety measures
 import os
 import sys
 import subprocess
+import tempfile
 import time
 import json
 import platform
@@ -334,7 +335,7 @@ class WindowsHardwareInterface(HardwareInterface):
     def __init__(self):
         self.capabilities = HardwareCapabilities()
         # Store backups under %LOCALAPPDATA%\DDR5-AI, falling back to %TEMP%
-        _local = os.environ.get("LOCALAPPDATA") or os.environ.get("TEMP", "C:\\Temp")
+        _local = os.environ.get("LOCALAPPDATA") or os.environ.get("TEMP") or tempfile.gettempdir()
         self._backup_dir = os.path.join(_local, "DDR5-AI")
         self.backup_path = os.path.join(self._backup_dir, "ddr5_backup.json")
     
@@ -536,10 +537,12 @@ class WindowsHardwareInterface(HardwareInterface):
                 if not isinstance(modules, list):
                     modules = [modules]
                 for mod in modules:
+                    capacity = int(mod.get("Capacity", 0))
+                    capacity_str = f"{capacity // (1024**3)}GB" if capacity > 0 else "Unknown"
                     logger.info(
                         f"  {mod.get('DeviceLocator', '?')}: "
                         f"{mod.get('Manufacturer', '?')} "
-                        f"{int(mod.get('Capacity', 0)) // (1024**3)}GB "
+                        f"{capacity_str} "
                         f"@ {mod.get('Speed', '?')} MT/s"
                     )
 

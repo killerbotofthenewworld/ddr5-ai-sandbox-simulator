@@ -171,7 +171,7 @@ class EnhancedHardwareInterface:
             
             # Fan speeds
             cpu_fan_rpm = 0
-            case_fans: list = []
+            case_fans: List[int] = []
             if hasattr(psutil, "sensors_fans"):
                 fans_fn = getattr(psutil, "sensors_fans", None)
                 fans = fans_fn() if callable(fans_fn) else None
