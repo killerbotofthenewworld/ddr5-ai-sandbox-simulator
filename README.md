@@ -1,11 +1,11 @@
-# 🧠 DDR5 AI Memory Tuner v6.0.2
+# DDR5 & DDR3 AI Memory Tuner v7.0.0
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.9+](https://img.shields.io/badge/Python-3.9+-blue.svg)](https://www.python.org/downloads/)
-[![Version](https://img.shields.io/badge/version-6.0.2-blue.svg)](https://github.com/killerbotofthenewworld/ddr5-ai-memory-tuner/releases)
+[![Version](https://img.shields.io/badge/version-7.0.0-blue.svg)](https://github.com/killerbotofthenewworld/ddr5-ai-memory-tuner/releases)
 [![CI](https://github.com/killerbotofthenewworld/ddr5-ai-memory-tuner/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/killerbotofthenewworld/ddr5-ai-memory-tuner/actions/workflows/ci-cd.yml)
 
-> DDR5 AI memory tuner for safe timing optimization and performance simulation; Streamlit UI, Windows installer, JEDEC compliance.
+> DDR5 & DDR3 AI memory tuner for safe timing optimization and performance simulation; Streamlit UI, Windows installer, JEDEC compliance.
 
 ---
 
@@ -63,7 +63,15 @@ python -m streamlit run src/web_interface/main.py --server.port 8521
 
 ---
 
-## ✨ Enhanced Features v6.0.0
+## ✨ Enhanced Features v7.0.0
+
+### 🆕 **DDR3 Memory Support (New!)**
+
+- **Full DDR3 Models** - Timing, voltage, and performance models for DDR3/DDR3L (800-2133 MT/s)
+- **DDR3 Simulator** - Bandwidth, latency, power, and stability simulation
+- **DDR3 AI Optimizer** - Genetic algorithm optimization with JEDEC constraint enforcement
+- **DDR3 JEDEC Compliance** - Validates against DDR3 JEDEC specifications (VDD 1.35-1.65V, VTT)
+- **DDR3L Support** - 1.35V low-voltage DDR3 configurations supported
 
 ### 🎨 **Professional UI/UX**
 

@@ -31,12 +31,12 @@ except FileNotFoundError:
 
 setup(
     name="ddr5-ai-sandbox-simulator",
-    version="6.0.0",
+    version="7.0.0",
     author="DDR5 AI Sandbox Simulator Team",
     author_email="",
     description=(
-        "Professional AI-Powered DDR5 Memory Tuning Platform with Real-Time "
-        "Hardware Integration & Enhanced Features"
+        "Professional AI-Powered DDR5 & DDR3 Memory Tuning Platform with "
+        "Real-Time Hardware Integration & Enhanced Features"
     ),
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -71,7 +71,7 @@ setup(
         "": ["*.md", "*.txt", "*.yml", "*.yaml"],
     },
     keywords=(
-        "ddr5 memory tuning ai optimization simulator hardware real-time "
+        "ddr5 ddr3 memory tuning ai optimization simulator hardware real-time "
         "websocket 3d-charts llm damage-prevention automl predictive-maintenance"
     ),
     project_urls={
