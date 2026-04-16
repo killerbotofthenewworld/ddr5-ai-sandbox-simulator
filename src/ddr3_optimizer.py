@@ -12,10 +12,18 @@ import random
 import logging
 
 try:
-    from .ddr3_models import DDR3Configuration
+    from .ddr3_models import (
+        DDR3Configuration,
+        DDR3TimingParameters,
+        DDR3VoltageParameters,
+    )
     from .ddr3_simulator import DDR3Simulator
 except ImportError:
-    from src.ddr3_models import DDR3Configuration
+    from src.ddr3_models import (
+        DDR3Configuration,
+        DDR3TimingParameters,
+        DDR3VoltageParameters,
+    )
     from src.ddr3_simulator import DDR3Simulator
 
 logger = logging.getLogger(__name__)
@@ -114,18 +122,14 @@ class DDR3GeneticAlgorithmOptimizer:
 
         cfg = DDR3Configuration(
             frequency=freq,
-            timings=__import__(
-                "src.ddr3_models", fromlist=["DDR3TimingParameters"]
-            ).DDR3TimingParameters(
+            timings=DDR3TimingParameters(
                 cl=cl,
                 trcd=trcd,
                 trp=trp,
                 tras=tras,
                 trc=trc,
             ),
-            voltages=__import__(
-                "src.ddr3_models", fromlist=["DDR3VoltageParameters"]
-            ).DDR3VoltageParameters(
+            voltages=DDR3VoltageParameters(
                 vdd=round(random.uniform(1.35, 1.65), 3),
                 vddq=round(random.uniform(1.35, 1.65), 3),
                 vtt=round(random.uniform(0.675, 0.825), 3),

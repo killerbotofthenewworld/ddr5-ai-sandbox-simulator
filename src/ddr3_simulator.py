@@ -379,14 +379,14 @@ class DDR3Simulator:
     def _get_stability_recommendation(
         self,
         stability_score: float,
-        config_violations: Any,
+        config_violations: Dict[str, List[str]],
     ) -> str:
         """
         Generate stability recommendations based on score and violations.
 
         Args:
             stability_score: Calculated stability score
-            config_violations: Configuration violations dict
+            config_violations: Dictionary of configuration violations by category
 
         Returns:
             Recommendation string
